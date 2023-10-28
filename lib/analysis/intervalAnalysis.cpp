@@ -212,7 +212,7 @@ void IntervalAnalysis::iter() {
         if (type == IR::InstType::GotoInst) {
             IR::GotoInst *gotoInst = (IR::GotoInst *)inst;
             auto bInfo = branchInfos[gotoInst->getLabel()];
-            changed = changed || bInfo->setGotoRange(currRange);
+            changed |= bInfo->setGotoRange(currRange);
             if (gotoInst->getDestInst()->getLabel() > gotoInst->getLabel()) {
                 // Only jump forward needs a new iteration
                 changed = false;
@@ -221,7 +221,7 @@ void IntervalAnalysis::iter() {
         if (type == IR::InstType::IfInst) {
             IR::IfInst *ifInst = (IR::IfInst *)inst;
             auto bInfo = branchInfos[ifInst->getLabel()];
-            changed = changed || bInfo->setIfRange(currRange);
+            changed |= bInfo->setIfRange(currRange);
             if (ifInst->getDestInst()->getLabel() > ifInst->getLabel()) {
                 // Only jump forward needs a new iteration
                 changed = false;

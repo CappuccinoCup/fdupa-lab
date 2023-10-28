@@ -77,13 +77,12 @@ public:
 
     ~Range() = default;
 
-    // debug
+    // Print range
     void print() {
         for (auto& r : range) {
             std::cout << "[" << r.first << ", " << r.second << "]";
         }
     }
-    // debug
 
     // set range = range v _range
     // return true if range is changed
@@ -153,7 +152,7 @@ public:
             r.first = std::min(r.first + c, 255);
             r.second = std::min(r.second + c, 255);
         }
-        arrange();
+        this->arrange();
     }
 
     // extend range by a range
@@ -164,7 +163,7 @@ public:
                 r.second = std::min(r.second + _r.second, 255);
             }
         }
-        arrange();
+        this->arrange();
     }
 
     // reduce range by an integer
@@ -173,7 +172,7 @@ public:
             r.first = std::max(r.first - c, 0);
             r.second = std::min(r.second - c, 0);
         }
-        arrange();
+        this->arrange();
     }
 
     // reduce range by a range
@@ -184,7 +183,7 @@ public:
                 r.second = std::max(r.second - _r.first, 0);
             }
         }
-        arrange();
+        this->arrange();
     }
 
     // compare range and _range
@@ -239,7 +238,7 @@ public:
     VarRange() = default;
     ~VarRange() = default;
 
-    // debug
+    // Print range of all variables
     void print() {
         for (auto& vr : varRange) {
             std::cout << vr.first << ": ";
@@ -247,9 +246,11 @@ public:
             std::cout << " ";
         }
     }
-    // debug
 
     Range getVar(const std::string& var) {
+        if (!this->containVar(var)) {
+            return Range();
+        }
         return varRange[var];
     }
 
@@ -288,7 +289,7 @@ public:
         for (auto& _v : _varSet) {
             if (this->containVar(_v)) {
                 auto _range = _varRange.getVar(_v);
-                changed = changed | varRange[_v].range_join(_range);
+                changed |= varRange[_v].range_join(_range);
             }
         }
         return changed;
@@ -300,7 +301,7 @@ public:
         for (auto& _v : _varSet) {
             if (this->containVar(_v)) {
                 auto _range = _varRange.getVar(_v);
-                changed = changed | varRange[_v].range_subtract(_range);
+                changed |= varRange[_v].range_subtract(_range);
             }
         }
         return changed;
@@ -333,8 +334,8 @@ private:
 public:
     BranchInfo() = default;
 
-    BranchInfo(std::string x, int s, int e) {
-        condX = std::move(x);
+    BranchInfo(const std::string& x, int s, int e) {
+        condX = x;
         condRange = Range(s, e);
     }
 
@@ -372,8 +373,9 @@ public:
             changed = true;
         }
 
-        // std::cout << "New Jump Range: " << std::endl;
+        // std::cout << "New Jump Range: ";
         // jumpRange.print();
+        // std::cout << std::endl;
 
         auto newXRange = currRange.getVar(condX);
         newXRange.range_subtract(newJXRange);
@@ -388,8 +390,9 @@ public:
             currRange.range_subtract(tmp);
         }
 
-        // std::cout << "New No Jump Range: " << std::endl;
+        // std::cout << "New No Jump Range: ";
         // currRange.print();
+        // std::cout << std::endl;
 
         return changed;
     }
