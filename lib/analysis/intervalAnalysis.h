@@ -21,116 +21,121 @@ class Range {
 private:
     static constexpr int LOWER_BOUND = 0;
     static constexpr int UPPER_BOUND = 255;
-    std::vector<std::pair<int, int>> range;
 
-    std::vector<std::pair<int, int>> getRange() {
-        return range;
+    std::vector<std::pair<int, int>> rangeList;
+
+    // get the range list
+    std::vector<std::pair<int, int>> getRangeList() {
+        return rangeList;
     }
 
-    void add(int s, int e) {
+    // insert an integer pair to the range list
+    void insert(int s, int e) {
         s = std::max(s, LOWER_BOUND);
         e = std::min(e, UPPER_BOUND);
         if (s <= e) {
-            range.emplace_back(s, e);
+            rangeList.emplace_back(s, e);
         }
     }
 
-    void complement() {
-        Range newRange;
-        int ele = LOWER_BOUND;
-        for (auto& r : range) {
-            newRange.add(ele, r.first - 1);
-            ele = r.second + 1;
-        }
-        newRange.add(ele, UPPER_BOUND);
-        newRange.arrange();
-        range = newRange.getRange();
-    }
-
+    // arrange and combine integer pairs in the range list
     void arrange() {
-        if (range.empty()) {
+        if (rangeList.empty()) {
             return;
         }
-        sort(range.begin(), range.end());
-        std::vector<std::pair<int, int>> newRange;
-        size_t size = range.size();
-        auto& r = range[0];
+        sort(rangeList.begin(), rangeList.end());
+        std::vector<std::pair<int, int>> newRangeList;
+        size_t size = rangeList.size();
+        auto& r = rangeList[0];
         for (int i = 1; i < size; i++) {
-            auto& _r = range[i];
+            auto& _r = rangeList[i];
             if (_r.first <= r.second + 1) {
                 r.second = std::max(r.second, _r.second);
             } else {
-                newRange.push_back(r);
+                newRangeList.push_back(r);
                 r = _r;
             }
         }
-        newRange.push_back(r);
-        range = newRange;
+        newRangeList.push_back(r);
+        rangeList = newRangeList;
+    }
+
+    // change Range to the complement of Range
+    void complement() {
+        Range newRange;
+        int ele = LOWER_BOUND;
+        for (auto& r : rangeList) {
+            newRange.insert(ele, r.first - 1);
+            ele = r.second + 1;
+        }
+        newRange.insert(ele, UPPER_BOUND);
+        newRange.arrange();
+        rangeList = newRange.getRangeList();
     }
 
 public:
     Range() = default;
 
     Range(int s, int e) {
-        this->add(s, e);
+        this->insert(s, e);
     }
 
     ~Range() = default;
 
-    // Print range
+    // print Range
     void print() {
-        for (auto& r : range) {
+        for (auto& r : rangeList) {
             std::cout << "[" << r.first << ", " << r.second << "]";
         }
     }
 
-    // set range = range v _range
-    // return true if range is changed
+    // set Range = Range v _Range
+    // return true if Range is changed
     bool range_union(Range& _range) {
         Range newRange = *this;
-        for (auto& _r : _range.getRange()) {
-            newRange.add(_r.first, _r.second);
+        for (auto& _r : _range.getRangeList()) {
+            newRange.insert(_r.first, _r.second);
         }
         newRange.arrange();
         if (!this->range_equal(newRange)) {
-            range = newRange.getRange();
+            rangeList = newRange.getRangeList();
             return true;
         }
         return false;
     }
 
-    // set range = range ^ _range
-    // return true if range is changed
+    // set Range = Range ^ _Range
+    // return true if Range is changed
     bool range_join(Range& _range) {
         if (this->is_empty()) {
             return false;
         }
         Range newRange;
         int idx = 0;
-        for (auto& _r : _range.getRange()) {
-            while (idx < range.size() && range[idx].second < _r.first) {
+        for (auto& _r : _range.getRangeList()) {
+            while (idx < rangeList.size() && rangeList[idx].second < _r.first) {
                 idx++;
             }
-            while (idx < range.size() && range[idx].second <= _r.second) {
-                auto& r = range[idx];
-                newRange.add(std::max(_r.first, r.first), std::min(_r.second, r.second));
+            while (idx < rangeList.size() && rangeList[idx].second <= _r.second) {
+                auto& r = rangeList[idx];
+                newRange.insert(std::max(_r.first, r.first), std::min(_r.second, r.second));
                 idx++;
             }
-            if (idx < range.size()) {
-                auto& r = range[idx];
-                newRange.add(std::max(_r.first, r.first), std::min(_r.second, r.second));
+            if (idx < rangeList.size()) {
+                auto& r = rangeList[idx];
+                newRange.insert(std::max(_r.first, r.first), std::min(_r.second, r.second));
             }
         }
         newRange.arrange();
         if (!this->range_equal(newRange)) {
-            range = newRange.getRange();
+            rangeList = newRange.getRangeList();
             return true;
         }
         return false;
     }
 
-    // set range = range - _range
-    // return true if range is changed
+    // set Range = Range - _Range
+    // return true if Range is changed
     bool range_subtract(Range& _range) {
         if (this->is_empty()) {
             return false;
@@ -140,86 +145,86 @@ public:
         newRange.range_join(*this);
         newRange.arrange();
         if (!this->range_equal(newRange)) {
-            range = newRange.getRange();
+            rangeList = newRange.getRangeList();
             return true;
         }
         return false;
     }
 
-    // extend range by an integer
+    // extend Range by an integer
     void range_add(int c) {
-        for (auto& r : range) {
-            r.first = std::min(r.first + c, 255);
-            r.second = std::min(r.second + c, 255);
+        for (auto& r : rangeList) {
+            r.first = std::min(r.first + c, UPPER_BOUND);
+            r.second = std::min(r.second + c, UPPER_BOUND);
         }
         this->arrange();
     }
 
-    // extend range by a range
+    // extend Range by _Range
     void range_add(Range& _range) {
-        for (auto& _r : _range.getRange()) {
-            for (auto& r : range) {
-                r.first = std::min(r.first + _r.first, 255);
-                r.second = std::min(r.second + _r.second, 255);
+        for (auto& _r : _range.getRangeList()) {
+            for (auto& r : rangeList) {
+                r.first = std::min(r.first + _r.first, UPPER_BOUND);
+                r.second = std::min(r.second + _r.second, UPPER_BOUND);
             }
         }
         this->arrange();
     }
 
-    // reduce range by an integer
+    // reduce Range by an integer
     void range_minus(int c) {
-        for (auto& r : range) {
-            r.first = std::max(r.first - c, 0);
-            r.second = std::min(r.second - c, 0);
+        for (auto& r : rangeList) {
+            r.first = std::max(r.first - c, LOWER_BOUND);
+            r.second = std::min(r.second - c, LOWER_BOUND);
         }
         this->arrange();
     }
 
-    // reduce range by a range
+    // reduce Range by _Range
     void range_minus(Range& _range) {
-        for (auto& _r : _range.getRange()) {
-            for (auto& r : range) {
-                r.first = std::max(r.first - _r.second, 0);
-                r.second = std::max(r.second - _r.first, 0);
+        for (auto& _r : _range.getRangeList()) {
+            for (auto& r : rangeList) {
+                r.first = std::max(r.first - _r.second, LOWER_BOUND);
+                r.second = std::max(r.second - _r.first, LOWER_BOUND);
             }
         }
         this->arrange();
     }
 
-    // compare range and _range
-    // return true if range is equal to _range
+    // compare Range with _Range
+    // return true if result is equal
     bool range_equal(Range& _range) {
-        size_t rSize = range.size();
-        auto _r = _range.getRange();
-        if (rSize != _r.size()) {
+        size_t rlSize = rangeList.size();
+        auto _rl = _range.getRangeList();
+        if (rlSize != _rl.size()) {
             return false;
         }
-        for (int i = 0; i < rSize; i++) {
-            if (range[i].first != _r[i].first || range[i].second != _r[i].second) {
+        for (int i = 0; i < rlSize; i++) {
+            if (rangeList[i].first != _rl[i].first || rangeList[i].second != _rl[i].second) {
                 return false;
             }
         }
         return true;
     }
 
-    // return true if range is a subset of _range
+    // return true if Range is a subset of _Range
     bool is_subset_of(Range& _range) {
         int _idx = 0;
-        auto _r = _range.getRange();
-        for (auto& r : range) {
-            while (_idx < _r.size() && _r[_idx].second < r.first) {
+        auto _rl = _range.getRangeList();
+        for (auto& r : rangeList) {
+            while (_idx < _rl.size() && _rl[_idx].second < r.first) {
                 _idx++;
             }
-            if (_idx == _r.size() || _r[_idx].first > r.first || _r[_idx].second < r.second) {
+            if (_idx == _rl.size() || _rl[_idx].first > r.first || _rl[_idx].second < r.second) {
                 return false;
             }
         }
         return true;
     }
 
-    // return true if range is an empty set
+    // return true if Range is an empty set
     bool is_empty() {
-        return range.empty();
+        return rangeList.empty();
     }
 };
 
@@ -236,9 +241,10 @@ private:
 
 public:
     VarRange() = default;
+
     ~VarRange() = default;
 
-    // Print range of all variables
+    // print Range of all variables
     void print() {
         for (auto& vr : varRange) {
             std::cout << vr.first << ": ";
@@ -247,6 +253,7 @@ public:
         }
     }
 
+    // get the Range of a variable
     Range getVar(const std::string& var) {
         if (!this->containVar(var)) {
             return Range();
@@ -254,6 +261,7 @@ public:
         return varRange[var];
     }
 
+    // get all variables
     std::unordered_set<std::string> getVarSet() {
         std::unordered_set<std::string> res;
         for (auto& vr : varRange) {
@@ -262,12 +270,15 @@ public:
         return res;
     }
 
+    // insert or replace the Range of a variable
     void insertVar(const std::string& var, Range range) {
         if (!range.is_empty()) {
             varRange[var] = range;
         }
     }
 
+    // union the Range of each variable
+    // return true if VarRange is changed
     bool range_union(VarRange& _varRange) {
         bool changed = false;
         auto _varSet = _varRange.getVarSet();
@@ -283,6 +294,8 @@ public:
         return changed;
     }
 
+    // join the Range of each variable
+    // return true if VarRange is changed
     bool range_join(VarRange& _varRange) {
         bool changed = false;
         auto _varSet = _varRange.getVarSet();
@@ -295,6 +308,8 @@ public:
         return changed;
     }
 
+    // subtract the Range of each variable
+    // return true if VarRange is changed
     bool range_subtract(VarRange& _varRange) {
         bool changed = false;
         auto _varSet = _varRange.getVarSet();
@@ -307,14 +322,15 @@ public:
         return changed;
     }
 
+    // return true if VarRange is equal to _VarRange
     bool range_equal(VarRange& _varRange) {
         auto varSet = _varRange.getVarSet();
         for (auto& _v : varSet) {
             if (!this->containVar(_v)) {
                 return false;
             }
-            auto _vr = _varRange.getVar(_v);
-            if (!varRange[_v].range_equal(_vr)) {
+            auto _range = _varRange.getVar(_v);
+            if (!varRange[_v].range_equal(_range)) {
                 return false;
             }
         }
@@ -373,10 +389,6 @@ public:
             changed = true;
         }
 
-        // std::cout << "New Jump Range: ";
-        // jumpRange.print();
-        // std::cout << std::endl;
-
         auto newXRange = currRange.getVar(condX);
         newXRange.range_subtract(newJXRange);
         if (newXRange.is_empty()) {
@@ -389,10 +401,6 @@ public:
             tmp.range_join(currRange);
             currRange.range_subtract(tmp);
         }
-
-        // std::cout << "New No Jump Range: ";
-        // currRange.print();
-        // std::cout << std::endl;
 
         return changed;
     }

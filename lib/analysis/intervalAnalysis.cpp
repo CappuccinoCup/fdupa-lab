@@ -122,20 +122,12 @@ void IntervalAnalysis::iter() {
     bool changed = true;
     while (changed)
     {
-    // debug
-    std::cout << std::endl << "=======" << std::endl;
-    // debug
     changed = false;
     for (auto& v : vars) {
         currRange.insertVar(v, Range(0, 0));
     }
     for (auto inst : insts)
-    {   
-        // debug
-        std::cout << "CurrRange: ";
-        currRange.print();
-        std::cout << std::endl;
-        // debug
+    {
         auto type = inst->getInstType();
         if (type == IR::InstType::AssignInst) {
             IR::AssignInst *assignInst = (IR::AssignInst *)inst;
