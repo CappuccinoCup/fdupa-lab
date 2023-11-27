@@ -459,10 +459,7 @@ public:
                 (Location){checkInst->getLine(), checkInst->getLabel()},
                 result);
         }
-        std::sort(
-            ans.begin(), ans.end(),
-            [](const std::pair<Location, ResultType> &x,
-               const std::pair<Location, ResultType> &y) { return x < y; });
+        std::sort(ans.begin(), ans.end());
 
         for (auto [loc, result] : ans) {
             auto [line, label] = loc;
