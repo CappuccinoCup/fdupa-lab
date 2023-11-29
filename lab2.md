@@ -41,13 +41,39 @@ $$
 上述例子在采用 Zone 抽象域后就能不产生误报
 
 ```c
+// j = [0, 0]
+// i = [0, 0]
 i = input();
+// j = [0, 0]
+// i = [0, 255]
+// j - i <= 255
+// i - j <= 0
 j = i;
+// j = [0, 255]
+// i = [0, 255]
+// j - i <= 0
+// i - j <= 0
 while(i > 0) {
+    // j = [1, 255]
+    // i = [1, 255]
+    // j - i <= 0
+    // i - j <= 0
     i = i - 1;
+    // j = [1, 255]
+    // i = [0, 254]
+    // j - i <= -1
+    // i - j <= 1
     j = j - 1;
+    // j = [0, 254]
+    // i = [0, 254]
+    // j - i <= 0
+    // i - j <= 0
 }
-check_interval(j, 0, 0); // fail when using interval domain
+// j = [0, 0]
+// i = [0, 0]
+// j - i <= 0
+// i - j <= 0
+check_interval(j, 0, 0); // ok when using zone domain
 ```
 
 
@@ -59,8 +85,6 @@ Zone 通常用 Difference Bound Matrices(DBMs) 来描述，假设程序中有 $n
 + $m_{ij} \neq + \infty$ 表示 $V_j - V_i$ 的上界；
 + $m_{ij} = + \infty$ 表示 $V_j - V_i$ 是无界的，即没有约束；
 + $m_{i0}, m_{0j}$ 用来描述一元的约束：$-V_i \leq m_{i0}, V_j \leq m_{0j}$。
-
-你可以把 $m$ 看成这 $n+1$ 个点构成的有向带权图的邻接矩阵，其中每条边是 $V_i \stackrel{m_{ij}}{\longrightarrow} V_j$。
 
 不一样的 DBM 有可能描述的区域是一样的，比如
 $$
@@ -185,7 +209,7 @@ Zone 抽象域的实现在 `analysis/zoneDomain.h` 与 `analysis/zoneDomain.cpp`
 + **Normalization**（`Normalization` 函数）
 
 + **Emptiness Testing**（`isEmpty` 函数）
-+ **Filter**（`filter` 函数，仅需要处理形如 $x - y \leq c$ 的条件，其中 $x$ 或 $y$ 必有一个为 $0$）
++ **Filter**（`filter` 函数，仅需要处理形如 $x - y \leq c$ 的条件，其中 $x$ 或 $y$ 有可能为常量 $0$）
 + **Assignment** 剩余两种情况的处理（`assign_case2`、`assign_case3` 函数，分别对应 $x \leftarrow y + c$ 与 $x \leftarrow [l, r]$）。
 
 完成后你可以通过运行 `build/test/zoneAnalysisTest` 来检查正确率与召回率，使用方法同 Lab1。
